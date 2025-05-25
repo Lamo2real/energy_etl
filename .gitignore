@@ -6,3 +6,4 @@
 *.env
 *.pyvenv
 *.csv
+*.log
