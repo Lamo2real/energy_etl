@@ -1,11 +1,10 @@
-
-
 import requests
 import os
 from dotenv import load_dotenv
 import pandas as pd
+# from datetime import datetime
 from log import setup_logger
-logger = setup_logger()
+from extract_functions.s3_date_object import fetch_date_object
 
 
 def extract_energy_data() -> pd.DataFrame:
@@ -16,56 +15,68 @@ def extract_energy_data() -> pd.DataFrame:
     """
 
     try:
+        logger = setup_logger()
         load_dotenv()
-        api_key = os.environ.get('API_KEY')
+        api_key = os.environ.get("API_KEY")
 
     except FileNotFoundError:
-        logger.error('file to .env was not found, check if it exists')
+        logger.error("file to .env was not found, check if it exists")
         raise
     except Exception as e:
-        print(e)
+        logger.error(f"unexpected error: {e}", exc_info=True)
         raise
 
-    endpoint = (
-        f'https://api.eia.gov/v2/electricity/retail-sales/data/'
-        f'?frequency=monthly'
-        f'&sort[0][column]=period&sort[0][direction]=asc'
-        f'&data[0]=customers'
-        f'&data[1]=price'
-        f'&data[2]=revenue'
-        f'&data[3]=sales'
-        f'&start=2001-01&end=2001-12'
-        f'&length=5000'
-        f'&api_key={api_key}'
-    )
-
+    
     ###### assign variable ######
     req_exc = requests.exceptions
     #############################
-    try:
-        data = requests.get(endpoint)
 
+    all_json_data = []
+    try:
+        date = fetch_date_object()
+        while date <= '2025-05':
+            
+            print(date)
+            endpoint = (
+                "https://api.eia.gov/v2/electricity/retail-sales/data/"
+                "?frequency=monthly"
+                "&sort[0][column]=period&sort[0][direction]=asc"
+                "&data[0]=customers"
+                "&data[1]=price"
+                "&data[2]=revenue"
+                "&data[3]=sales"
+                f"&start={date}&end=2025-01" # needs to change end date to dynamic value to current date
+                "&length=5000"
+                f"&api_key={api_key}"
+            )
+            data = requests.get(endpoint)
+            json_data = data.json()
+            all_json_data.append()
     except (
-        req_exc.Timeout, req_exc.ConnectionError,
-        req_exc.HTTPError, req_exc.RequestException, Exception
+        req_exc.Timeout,
+        req_exc.ConnectionError,
+        req_exc.HTTPError,
+        req_exc.RequestException,
     ) as e:
-        logger.error(f'Exception occurred: {e}', exc_info=True)
-        raise
-
-    try:
-        json_data = data.json()
-        raw_df = pd.json_normalize(json_data['response']['data'])
-
-    except KeyError as ke:
-        logger.error(ke, exc_info=True)
+        logger.error(f"Exception occurred: {e}", exc_info=True)
         raise
     except Exception as e:
-        logger.error(f'unexpected error: {e}', exc_info=True)
-        raise
+        logger.error(f"unexpected error: {e}", exc_info=True)
 
-    # print(raw_df.head(10))
+    try:
+        raw_df = pd.json_normalize(json_data["response"]["data"])
+        print(raw_df["period"].dtype)
+
+    except KeyError as ke:
+        logger.error(f"Exception occurred: {ke}", exc_info=True)
+        raise
+    except Exception as e:
+        logger.error(f"unexpected error: {e}", exc_info=True)
+        raise
+    print(raw_df.tail(10))
     return raw_df
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     extract_energy_data()
