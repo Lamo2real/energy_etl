@@ -65,7 +65,6 @@ def extract_energy_data() -> pd.DataFrame:
 
     try:
         raw_df = pd.json_normalize(json_data["response"]["data"])
-        print(raw_df["period"].dtype)
 
     except KeyError as ke:
         logger.error(f"Exception occurred: {ke}", exc_info=True)

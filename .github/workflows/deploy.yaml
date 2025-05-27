@@ -1,0 +1,44 @@
+
+
+name: Deployment of ETL Pipeline (Application & Infrastructure)
+
+on:
+    pull_request:
+        branches:
+            - main
+
+jobs:
+
+    infrastructure:
+        runs-on: ubuntu-24.04
+
+        defaults:
+            run:
+                working-directory: infrastructure
+
+        steps:
+            - name: clone repository to ubuntu machine
+              uses: actions/checkout@v4
+
+            - name: configure aws credentials
+              uses: aws-actions/configure-aws-credentials@v3
+              with:
+                aws-access-key-id: ${{secrets.DEVELOPER_ACCESS_KEY}}
+                aws-secret-access-key: ${{secrets.DEVELOPER_SECRET_ACCESS_KEY}}
+                aws-region: eu-central-1
+
+            - name: setup terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                terraform_version: 1.9.5
+
+            - name: initialize terraform
+              run: |
+                export TFSTATE_BUCKET=${{secrets.S3_TFSTATE_TRACKER_BUCKET}}
+                export TFSTATE_REGION=eu-central-1
+                  
+                terraform init \
+                  -backend-config="bucket=$TFSTATE_BUCKET" \
+                  -backend-config="key=infra-state-files/terraform.tfstate" \
+                  -backend-config="region=$TFSTATE_REGION" \
+                  -backend-config="encrypt=true"
