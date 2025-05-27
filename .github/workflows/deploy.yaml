@@ -42,3 +42,15 @@ jobs:
                   -backend-config="key=infra-state-files/terraform.tfstate" \
                   -backend-config="region=$TFSTATE_REGION" \
                   -backend-config="encrypt=true"
+
+            - name: Validate terraform syntax
+              run: terraform validate
+
+            - name: Format terraform code
+              run: terraform fmt --recursive
+
+            - name: Plan terraform changes
+              run: terraform plan
+
+            - name: Apply Terraform changes
+              run: terraform apply --auto-approve

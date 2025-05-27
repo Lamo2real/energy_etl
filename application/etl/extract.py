@@ -2,7 +2,7 @@ import requests
 import os
 from dotenv import load_dotenv
 import pandas as pd
-# from datetime import datetime
+from datetime import datetime
 from log import setup_logger
 from extract_functions.s3_date_object import fetch_date_object
 
@@ -30,7 +30,7 @@ def extract_energy_data() -> pd.DataFrame:
     ###### assign variable ######
     req_exc = requests.exceptions
     #############################
-
+    now_date = datetime.now().strftime()
     all_json_data = []
     try:
         date = fetch_date_object()
