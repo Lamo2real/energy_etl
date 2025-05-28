@@ -7,3 +7,5 @@
 *.pyvenv
 *.csv
 *.log
+*.tfstate*
+*.DS_Store
