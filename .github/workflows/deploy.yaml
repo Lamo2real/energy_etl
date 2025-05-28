@@ -50,7 +50,12 @@ jobs:
               run: terraform fmt --recursive
 
             - name: Plan terraform changes
-              run: terraform plan
+              run: |
+                terraform plan \
+                  -var="data_lake=${{secrets.S3_DATE_TRACKER}}"
+
 
             - name: Apply Terraform changes
-              run: terraform apply --auto-approve
+              run: |
+                terraform apply --auto-approve \
+                  -var="data_lake=${{secrets.S3_DATE_TRACKER}}"

@@ -6,3 +6,14 @@ variable "infra_region" {
   type = string
   sensitive = true
 }
+
+
+
+############################### STORAGE ###############################
+variable "data_lake" {
+  description = "this is the bucket where the data lake is hosted"
+  type = string
+  sensitive = true
+}
+#######################################################################
+
